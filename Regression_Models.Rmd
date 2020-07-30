@@ -1,0 +1,105 @@
+---
+title: "Regresion Models: Project"
+author: "Emiliano Caballero"
+date: "7/24/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+
+```
+
+```{r include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(dplyr)
+library(ggplot2)
+```
+# Regression Models Course Project
+
+## 1. Some Exploratory Data Analysys
+
+Firstable, I will make some exploratory data analysys, including a brief summary of the dataset with the summary() and str() functions (so as not to lengthen the document, we exclude son outputs from the R code), the correlation between the variable mpg and the rest of them and a plot explaining the miles per gallon by transmission type including in the apendix.
+
+Quickly we can conclude that there are 11 variables in the dataset, all of them are numerical, there are a positive correlation whith (drat, qsec, vs, am, and gear) and negative correlation for the others (cyl, disp, hp, wt and carb). And according with the plot the manual transmission have a better MPG thn the automatic.
+
+##  2. Statistical Hypothesis
+
+The first plot in the appendix tell us the manual have better MPG than the automatic but to make this conclusion more robust, I will do an hypothesis test for two independent samples to compare the means of the two differents transmissions.
+
+To apply this test, firstly, I have to verify that the samples confirmed the assumptions taht they required.
+The assumtions that I have to verify are:
+
+* Both samples are from a normal
+
+* Verify if the variance are not statistically different
+
+I will split the dataset in two datasets. A dataset with the manual transmission and a dataset with the automatic transmission.
+And then I will apply the Shapiro-Wilk normality test and the Fischer test to compare two cariances.
+
+For the shapiro test as both have a p-value more than 0.05 (.89 and .53), I can't reject the null hypothesis so I can conclude than the data comes from normal samples.
+
+For the variance test as the p-value is more tha 0.05 (.066) I can´t reject the null hypothesis so I can conclude that the variances are not different.As the assumtions are accomplish I will use T-test for independent samples for samples with different varainces.
+
+So since the p-value is less than .05 (.013), I reject the null hypothesis so I can conclude that the means  are not statistically equals, therefore the means differ significantly.
+
+## 3. Regresion Models
+
+Here I adopt a stepwise algorithm, to choose the best model. With the step() function.
+
+So the best model to fit the Miles/Gallon includes three variables: the Weight, qsec 1/4 mile time and the Transmission.
+
+In instance, we could see if the residuals of the model are randomly distributed as we can see in the Apendix.
+
+## 4. Summary
+
+Interpretating the results, we can see this model has a 85% total of the proportion of variance for the independent variable with the dependent variables with an adjusted variance of 83%. By adding the coefficients, we have the following conclusions:
+
+*When the weight increased by 1000 lbs, the mpg decreased by -3.176 for automatic transmission cars, and -6.09 for manual transmission cars.
+*So with increasing car weight we should choose manual transmission cars
+*When the acceleration speed dropped, and 1/4 mile time increased (by 1 sec), the mpg factor increased by 1.22 miles for automatic transmission cars, and 2.9 miles for manual transmission cars
+*So with lower acceleration speed, but same weight, manual transmission cars are better for mpg
+
+## 5. Conclusion
+
+Based on the previous analysis, we can say that on average manual transmission is better than automatic transmission by 2.9 mpg but also transmission type is not the only factor accounting for MPG, weight, and acceleration (1/4 mile time) also needs to be considered.
+
+## 6. Apendix
+
+### Exploratory Data Anlaysis for mtcars
+
+```{r}
+library(datasets)
+data("mtcars")
+str(mtcars)
+cor(mtcars$mpg,mtcars[,-1])
+```
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+mtcars$am <- as.factor(mtcars$am)
+g<-ggplot(mtcars,aes(x=am,y=mpg))+
+        geom_boxplot()+
+        labs(title="Miles/(US) gallon by transmission type",x="Transmission (0 = automatic,1manual)",y="Miles/(US) gallon")
+g<-g + theme(
+  plot.title = element_text(hjust = 0.5),
+)
+print(g)
+```
+
+### T-test to compare the means of the Auto and the Manual Transmission
+
+```{r}
+t.test(mtcars$mpg~mtcars$am,conf.level=0.95)
+```
+
+
+### Regression Model and Plots releted
+
+```{r}
+step_best_model = step(lm(data = mtcars, mpg ~ .),trace=0,steps=10000)
+summary(step_best_model)
+```
+
+```{r}
+plot(step_best_model)
+```
